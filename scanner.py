@@ -2,6 +2,7 @@
 # Daniel Mestres Pinero_802-15-4744
 # CIIC4030-036
 # Assignment_3_Scanner
+# Server Functional Declarative Language
 # Run: (Linux)
 #   python3 scanner.py input_file_name
 # References:
@@ -15,25 +16,27 @@ import logging
 
 ##########################_Scanner_################################
 
-# Reserved words map ('word' : 'TOKEN')
+# Reserved words map ('id' : 'TOKEN')
 words = {
     'if'    : 'IF',    'then'  : 'THEN',
     'else'  : 'ELSE',  'map'   : 'MAP',
     'to'    : 'TO',    'let'   : 'LET',
-    'in'    : 'IN',    'null'  : 'NULL',
+    'in'    : 'IN',    'NULL'  : 'NULL',
+    'lambda': 'LAMBDA','def'   : 'DEF',
+    'new'   : 'NEW',
 
-    'true'  : 'BOOL',  'false' : 'BOOL',
+    'TRUE'  : 'BOOL',  'FALSE' : 'BOOL',
 
     'number?'   : 'PRIM', 'function?' : 'PRIM',
     'list?'     : 'PRIM', 'null?'     : 'PRIM',
     'cons?'     : 'PRIM', 'cons'      : 'PRIM',
     'first'     : 'PRIM', 'rest'      : 'PRIM',
-    'arity'     : 'PRIM'
+    'arity'     : 'PRIM', 'equal?'    : 'PRIM'
 }
 
 # Token list
 tokens = [
-    'INT',
+    'NUM',
 
     'ID',
     'IF',
@@ -44,6 +47,7 @@ tokens = [
     'LET',
     'IN',
     'NULL',
+    'LAMBDA',
     'BOOL',
     'PRIM',
 
@@ -66,19 +70,26 @@ def t_error(t):
     t.lexer.skip(1)
 
 t_ignore  = ' \t'
-t_INT = r'\d+'
+
 t_DELIMITER = r'\(|\)|\[|\]|\,|\;'
 t_SIGN = r'\+|\-'
-t_BINOP = r'\~|\*|\/|\=|\!=|\<|\>|\<=|\>=|\&|\||\:='
+t_BINOP = r'\~|\*|\/|\<|\>|\<=|\>=|\&|\||\->|\:'
 
 # AlphaOther {AlphaOtherNumeric}*
 def t_ID(t):
-    r'[a-zA-Z_?][a-zA-Z0-9_?]*'
+    r'[a-zA-Z][a-zA-Z0-9_?_!]*'
     # Checks for reserved words
     t.type = words.get(t.value, 'ID')
     return t
 
-##########################_Debug_&_Building_#############################
+def t_NUM(t):
+    r'(\d*\.)?\d+'
+    return t
+
+############################_Parser_##################################
+# TODO: Implement for assignment 4
+
+##########################_Build_&_Debug_#############################
 
 # Build scanner
 lexer = lex.lex()
@@ -87,12 +98,9 @@ lexer = lex.lex()
 data = open(sys.argv[1])
 
 # Scanner input
-with data as fp:
-    for line in fp:
-        try:
-            lexer.input(line)
+lexer.input(data.read())
 
-            for tok in lexer:
-                print(tok)
-        except EOFError:
-            break
+while True:
+    tok = lexer.token()
+    if not tok: break
+    print(tok)
