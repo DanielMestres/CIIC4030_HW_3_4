@@ -18,42 +18,24 @@ import logging
 
 # Reserved words map ('id' : 'TOKEN')
 words = {
-    'if'    : 'IF',    'then'  : 'THEN',
-    'else'  : 'ELSE',  'map'   : 'MAP',
-    'to'    : 'TO',    'let'   : 'LET',
-    'in'    : 'IN',    'NULL'  : 'NULL',
-    'lambda': 'LAMBDA','def'   : 'DEF',
-    'new'   : 'NEW',
-
-    'TRUE'  : 'BOOL',  'FALSE' : 'BOOL',
-
-    'number?'   : 'PRIM', 'function?' : 'PRIM',
-    'list?'     : 'PRIM', 'null?'     : 'PRIM',
-    'cons?'     : 'PRIM', 'cons'      : 'PRIM',
-    'first'     : 'PRIM', 'rest'      : 'PRIM',
-    'arity'     : 'PRIM', 'equal?'    : 'PRIM'
+    'start-remote' : 'START_REMOTE',
+    'start-local' : 'START_LOCAL',
+    'send' : 'SEND',
+    'end-remote' : 'END_REMOTE',
+    'end-local'  : 'END_LOCAL'
 }
 
 # Token list
 tokens = [
     'NUM',
-
     'ID',
-    'IF',
-    'THEN',
-    'ELSE',
-    'MAP',
-    'TO',
-    'LET',
-    'IN',
-    'NULL',
-    'LAMBDA',
-    'BOOL',
-    'PRIM',
+    'IP',
 
-    'DELIMITER',
-    'SIGN',
-    'BINOP'
+    'START_REMOTE',
+    'START_LOCAL',
+    'SEND',
+    'END_REMOTE',
+    'END_LOCAL'
 ]
 
 # Rules
@@ -71,19 +53,19 @@ def t_error(t):
 
 t_ignore  = ' \t'
 
-t_DELIMITER = r'\(|\)|\[|\]|\,|\;'
-t_SIGN = r'\+|\-'
-t_BINOP = r'\~|\*|\/|\<|\>|\<=|\>=|\&|\||\->|\:'
-
 # AlphaOther {AlphaOtherNumeric}*
 def t_ID(t):
-    r'[a-zA-Z][a-zA-Z0-9_?_!]*'
+    r'[a-zA-Z][a-zA-Z0-9_-]*'
     # Checks for reserved words
     t.type = words.get(t.value, 'ID')
     return t
 
 def t_NUM(t):
     r'(\d*\.)?\d+'
+    return t
+
+def t_IP(t):
+    r'\d+[.]\d+[.]\d+[.]\d+'
     return t
 
 ############################_Parser_##################################

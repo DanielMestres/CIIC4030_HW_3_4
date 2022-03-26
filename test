@@ -1,1 +1,7 @@
-(def sort(x)): -345.45 54
+# Custom server communication language
+
+start-remote
+start-local
+send
+end-remote
+end-local
