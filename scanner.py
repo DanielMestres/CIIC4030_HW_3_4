@@ -20,19 +20,26 @@ import logging
 words = {
     'start-remote' : 'START_REMOTE',
     'start-local' : 'START_LOCAL',
+    'get-remote'    : 'GET_REMOTE',
     'send' : 'SEND',
     'end-remote' : 'END_REMOTE',
-    'end-local'  : 'END_LOCAL'
+    'end-local'  : 'END_LOCAL',
+
+    'def'   :   'DEFINE'
 }
 
 # Token list
 tokens = [
-    'NUM',
     'ID',
+    'NUM',
+    'DELIMITER',
+    'SIGN',
+    'BINOP',
     'IP',
 
     'START_REMOTE',
     'START_LOCAL',
+    'GET_REMOTE',
     'SEND',
     'END_REMOTE',
     'END_LOCAL'
@@ -52,6 +59,10 @@ def t_error(t):
     t.lexer.skip(1)
 
 t_ignore  = ' \t'
+
+t_DELIMITER = r'\(|\)|\;|\"|\,|\:'
+t_SIGN = r'\+|\-'
+t_BINOP = r'\~|\*|\/|\=|\!=|\<|\>|\<=|\>=|\&|\||\:='
 
 # AlphaOther {AlphaOtherNumeric}*
 def t_ID(t):

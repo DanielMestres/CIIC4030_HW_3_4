@@ -1,7 +1,23 @@
 # Custom server communication language
 
-start-remote
-start-local
-send
-end-remote
-end-local
+# Initialize remote server
+start-remote()
+
+# Initialize local server
+start-local()
+
+# Find remote server to be able to communicate
+get-remote(192.168.0.1)
+
+# Able to make custom functions
+def sum(x y): (x + y)
+
+# Communication from local to remote server
+send("Hello")
+send(sum(10 15))
+
+# Terminate remote server
+end-remote()
+
+# Terminate local server
+end-local()
