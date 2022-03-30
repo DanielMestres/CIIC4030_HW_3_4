@@ -1,0 +1,7 @@
+# Local server example, initializes a local server, finds a remote server and sends it a message
+
+start-local()
+set-local(4000)
+get-remote(5000)
+send("Hello Remote")
+end()

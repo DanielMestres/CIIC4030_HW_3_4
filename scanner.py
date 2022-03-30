@@ -14,18 +14,18 @@ from ply import yacc as yacc
 import sys
 import logging
 
-##########################_Scanner_################################
+############################_Lexer_################################
 
 # Reserved words map ('id' : 'TOKEN')
 words = {
     'start-remote' : 'START_REMOTE',
     'start-local' : 'START_LOCAL',
+    'set-remote'  : 'SET_REMOTE',
+    'set-local'   : 'SET_LOCAL',
     'get-remote'    : 'GET_REMOTE',
+    'get-local'     : 'GET_LOCAL',
     'send' : 'SEND',
-    'end-remote' : 'END_REMOTE',
-    'end-local'  : 'END_LOCAL',
-
-    'def'   :   'DEFINE'
+    'end'  : 'END'
 }
 
 # Token list
@@ -33,16 +33,12 @@ tokens = [
     'ID',
     'NUM',
     'DELIMITER',
-    'SIGN',
-    'BINOP',
-    'IP',
 
-    'START_REMOTE',
-    'START_LOCAL',
-    'GET_REMOTE',
+    'START_REMOTE', 'START_LOCAL',
+    'SET_REMOTE', 'SET_LOCAL',
+    'GET_REMOTE', 'GET_LOCAL',
     'SEND',
-    'END_REMOTE',
-    'END_LOCAL'
+    'END'
 ]
 
 # Rules
@@ -60,9 +56,7 @@ def t_error(t):
 
 t_ignore  = ' \t'
 
-t_DELIMITER = r'\(|\)|\;|\"|\,|\:'
-t_SIGN = r'\+|\-'
-t_BINOP = r'\~|\*|\/|\=|\!=|\<|\>|\<=|\>=|\&|\||\:='
+t_DELIMITER = r'\(|\)|\"|\"'
 
 # AlphaOther {AlphaOtherNumeric}*
 def t_ID(t):
@@ -72,11 +66,8 @@ def t_ID(t):
     return t
 
 def t_NUM(t):
-    r'(\d*\.)?\d+'
-    return t
-
-def t_IP(t):
-    r'\d+[.]\d+[.]\d+[.]\d+'
+    r'\d+'
+    t.value = int(t.value)
     return t
 
 ############################_Parser_##################################
