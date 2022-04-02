@@ -1,7 +1,9 @@
-# Local server example, initializes a local server, finds a remote server and sends it a message
+# Local server example
+# Sets port, initializes a local server and finds a remote server with the given port
+# and sends it a message
 
-start-local()
-set-local(4000)
-get-remote(5000)
+set-port(4000)
+start-local
+get-server(5000)
 send("Hello Remote")
-end()
+end

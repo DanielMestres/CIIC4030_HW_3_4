@@ -20,10 +20,8 @@ import logging
 words = {
     'start-remote' : 'START_REMOTE',
     'start-local' : 'START_LOCAL',
-    'set-remote'  : 'SET_REMOTE',
-    'set-local'   : 'SET_LOCAL',
-    'get-remote'    : 'GET_REMOTE',
-    'get-local'     : 'GET_LOCAL',
+    'set-port'  : 'SET_PORT',
+    'get-server'    : 'GET_SERVER',
     'send' : 'SEND',
     'end'  : 'END'
 }
@@ -34,9 +32,10 @@ tokens = [
     'NUM',
     'DELIMITER',
 
-    'START_REMOTE', 'START_LOCAL',
-    'SET_REMOTE', 'SET_LOCAL',
-    'GET_REMOTE', 'GET_LOCAL',
+    'START_REMOTE',
+    'START_LOCAL',
+    'SET_PORT',
+    'GET_SERVER',
     'SEND',
     'END'
 ]
