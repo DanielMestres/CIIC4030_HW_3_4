@@ -5,5 +5,5 @@
 set-port(4000)
 start-local
 get-server(5000)
-send("Hello Remote")
+send("Testing101 Hello Remote 404")
 end
