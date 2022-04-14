@@ -1,9 +1,0 @@
-# Local server example
-# Sets port, initializes a local server and finds a remote server with the given port
-# and sends it a message
-
-set-port(4000)
-start-local
-get-server(5000)
-send("Testing101 Hello Remote 404")
-end
