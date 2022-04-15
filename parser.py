@@ -8,6 +8,7 @@
 # References:
 #   https://www.dabeaz.com/ply/ply.html
 #   https://www.skenz.it/compilers/ply
+#   https://realpython.com/python-sockets/
 # --------------------------------------------------------
 from ply import lex as lex
 from ply import yacc as yacc
@@ -21,10 +22,9 @@ import logging
 words = {
     'start-remote' : 'START_REMOTE',
     'start-local' : 'START_LOCAL',
-    'set-port'  : 'SET_PORT',
-    'get-server'    : 'GET_SERVER',
     'send' : 'SEND',
-    'end'  : 'END'
+    'end-remote'  : 'END_REMOTE',
+    'end-local' : 'END_LOCAL'
 }
 
 # Token list
@@ -37,10 +37,9 @@ tokens = [
 
     'START_REMOTE',
     'START_LOCAL',
-    'SET_PORT',
-    'GET_SERVER',
     'SEND',
-    'END'
+    'END_REMOTE',
+    'END_LOCAL'
 ]
 
 # Rules
@@ -75,10 +74,40 @@ def t_NUM(t):
     return t
 
 #######################_Intermediate_Code_############################
-# TODO: use socket lib
+class Remote:
+    def __init__(self, port):
+        self.running = True
+        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.s.bind((socket.gethostname(), port))
+        self.s.listen(5)
+        print("Waiting for connections...")
+
+        while self.running:
+            self.lSocket, self.addr = self.s.accept()
+            print(f"Connection from { self.addr } has been established!")
+            self.lSocket.send(bytes("Welcome to the server!", "utf-8"))
+
+    def close(self):
+        self.s.close()
+        self.running = False
+
+class Local:
+    def __init__(self):
+        self.running = True
+        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    def find(self, port):
+        self.s.connect((socket.gethostname(), port))
+        while self.running:
+            msg = self.s.recv(1024) # 1024 bytes
+            print(msg.decode("utf-8"))
+
+    def close(self):
+        self.s.close()
+        self.running = False
+
 
 ############################_Parser_##################################
-# TODO: implement intermediate code
 def p_program(p):
     ''' program : explist '''
 
@@ -89,28 +118,29 @@ def p_explist(p):
 def p_exp(p):
     ''' exp : startremote
             | startlocal
-            | setport
-            | getserver
             | send
-            | end '''
+            | endremote
+            | endlocal '''
 
 def p_startremote(p):
-    ''' startremote : START_REMOTE '''
+    ''' startremote : START_REMOTE LPAREN NUM RPAREN '''
+    remote = Remote(p[3])
 
 def p_startlocal(p):
-    ''' startlocal : START_LOCAL '''
-
-def p_setport(p):
-    ''' setport : SET_PORT LPAREN NUM RPAREN '''
-
-def p_getserver(p):
-    ''' getserver : GET_SERVER LPAREN NUM RPAREN '''
+    ''' startlocal : START_LOCAL LPAREN NUM RPAREN '''
+    local = Local()
+    local.find(p[3])
 
 def p_send(p):
     ''' send : SEND LPAREN QUOTE idlist QUOTE RPAREN '''
 
-def p_end(p):
-    ''' end : END '''
+def p_endremote(p):
+    ''' endremote : END_REMOTE '''
+    remote.close()
+
+def p_endlocal(p):
+    ''' endlocal : END_LOCAL '''
+    local.close()
 
 def p_idlist(p):
     ''' idlist : ID

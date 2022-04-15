@@ -1,0 +1,16 @@
+# Custom server communication language
+
+# Initialize a remote server with given port
+start-remote(4000)
+
+# Initialize a local server
+start-local
+
+# Find remote server with given port to be able to communicate
+get-remote(4000)
+
+# Simple Communication from local to remote server
+send("Hello")
+
+# Terminate remote or local server
+end
