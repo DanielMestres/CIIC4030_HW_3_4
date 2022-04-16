@@ -3,16 +3,20 @@
 # CIIC4030-036
 # Assignment_4_Parser_&_Int_Code
 # Server Functional Declarative Language
-# Run: (Linux)
-#   python3 parser.py input_file
+# Run: (in separate terminals)
+#   python3 parser.py testRemote
+#   python3 parser.py testLocal
 # References:
 #   https://www.dabeaz.com/ply/ply.html
 #   https://www.skenz.it/compilers/ply
 #   https://realpython.com/python-sockets/
+#   https://cs.lmu.edu/~ray/notes/pythonnetexamples/
 # --------------------------------------------------------
 from ply import lex as lex
 from ply import yacc as yacc
 import sys
+import socketserver
+import threading
 import socket
 import logging
 
@@ -22,8 +26,6 @@ import logging
 words = {
     'start-remote' : 'START_REMOTE',
     'start-local' : 'START_LOCAL',
-    'send' : 'SEND',
-    'end-remote'  : 'END_REMOTE',
     'end-local' : 'END_LOCAL'
 }
 
@@ -33,12 +35,9 @@ tokens = [
     'NUM',
     'LPAREN',
     'RPAREN',
-    'QUOTE',
 
     'START_REMOTE',
     'START_LOCAL',
-    'SEND',
-    'END_REMOTE',
     'END_LOCAL'
 ]
 
@@ -59,7 +58,6 @@ t_ignore  = ' \t'
 
 t_LPAREN = r'\('
 t_RPAREN = r'\)'
-t_QUOTE = r'\"'
 
 # AlphaOther {AlphaOtherNumeric}*
 def t_ID(t):
@@ -74,38 +72,53 @@ def t_NUM(t):
     return t
 
 #######################_Intermediate_Code_############################
-class Remote:
-    def __init__(self, port):
-        self.running = True
-        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.s.bind((socket.gethostname(), port))
-        self.s.listen(5)
-        print("Waiting for connections...")
+local = None
 
-        while self.running:
-            self.lSocket, self.addr = self.s.accept()
-            print(f"Connection from { self.addr } has been established!")
-            self.lSocket.send(bytes("Welcome to the server!", "utf-8"))
+def runserver(port):
+    class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+        daemon_threads = True
+        allow_reuse_address = True
 
-    def close(self):
-        self.s.close()
-        self.running = False
+    class PrintHandler(socketserver.StreamRequestHandler):
+        def handle(self):
+            client = f'{self.client_address} on {threading.current_thread().name}'
+            print(f'Connected: {client}')
+            while True:
+                data = self.rfile.readline()
+                if not data:
+                    break
+                decoded = data.decode('utf-8')
+                self.wfile.write(decoded.encode('utf-8'))
+                print(f"{self.client_address} says: {decoded}")
+            print(f'Closed: {client}')
+
+    with ThreadedTCPServer(('', port), PrintHandler) as server:
+        print(f'The server is running...')
+        server.serve_forever()
 
 class Local:
     def __init__(self):
-        self.running = True
-        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    def find(self, port):
-        self.s.connect((socket.gethostname(), port))
-        while self.running:
-            msg = self.s.recv(1024) # 1024 bytes
-            print(msg.decode("utf-8"))
+    def connect(self, port):
+        with self.sock as sock:
+            sock.connect((socket.gethostname(), port))
+            print('Enter lines of text then Ctrl+D or Ctrl+C to quit')
+            while True:
+                line = sys.stdin.readline()
+                if not line:
+                    # End of standard input, exit this entire script
+                    break
+                sock.sendall(f'{line}'.encode('utf-8'))
+                while True:
+                    data = sock.recv(128)
+                    print("Server received: " + data.decode("utf-8"), end='')
+                    if len(data) < 128:
+                        # No more of this message, go back to waiting for next message
+                        break
 
     def close(self):
-        self.s.close()
-        self.running = False
-
+        self.sock.close
 
 ############################_Parser_##################################
 def p_program(p):
@@ -118,36 +131,22 @@ def p_explist(p):
 def p_exp(p):
     ''' exp : startremote
             | startlocal
-            | send
-            | endremote
             | endlocal '''
 
 def p_startremote(p):
     ''' startremote : START_REMOTE LPAREN NUM RPAREN '''
-    remote = Remote(p[3])
+    runserver(p[3])
 
 def p_startlocal(p):
     ''' startlocal : START_LOCAL LPAREN NUM RPAREN '''
+    global local
     local = Local()
-    local.find(p[3])
-
-def p_send(p):
-    ''' send : SEND LPAREN QUOTE idlist QUOTE RPAREN '''
-
-def p_endremote(p):
-    ''' endremote : END_REMOTE '''
-    remote.close()
+    local.connect(p[3])
 
 def p_endlocal(p):
     ''' endlocal : END_LOCAL '''
+    global local
     local.close()
-
-def p_idlist(p):
-    ''' idlist : ID
-               | NUM
-               | NUM idlist
-               | ID idlist '''
-
 
 # Error rule for syntax errors
 def p_error(p):
