@@ -74,24 +74,24 @@ def t_NUM(t):
 #######################_Intermediate_Code_############################
 local = None
 
+class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+    daemon_threads = True
+    allow_reuse_address = True
+
+class PrintHandler(socketserver.StreamRequestHandler):
+    def handle(self):
+        client = f'{self.client_address} on {threading.current_thread().name}'
+        print(f'Connected: {client}')
+        while True:
+            data = self.rfile.readline()
+            if not data:
+                break
+            decoded = data.decode('utf-8')
+            self.wfile.write(decoded.encode('utf-8'))
+            print(f"{self.client_address} says: {decoded}")
+        print(f'Closed: {client}')
+
 def runserver(port):
-    class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
-        daemon_threads = True
-        allow_reuse_address = True
-
-    class PrintHandler(socketserver.StreamRequestHandler):
-        def handle(self):
-            client = f'{self.client_address} on {threading.current_thread().name}'
-            print(f'Connected: {client}')
-            while True:
-                data = self.rfile.readline()
-                if not data:
-                    break
-                decoded = data.decode('utf-8')
-                self.wfile.write(decoded.encode('utf-8'))
-                print(f"{self.client_address} says: {decoded}")
-            print(f'Closed: {client}')
-
     with ThreadedTCPServer(('', port), PrintHandler) as server:
         print(f'The server is running...')
         server.serve_forever()
@@ -145,8 +145,8 @@ def p_startlocal(p):
 
 def p_endlocal(p):
     ''' endlocal : END_LOCAL '''
-    global local
-    local.close()
+    # global local
+    # local.close()
 
 # Error rule for syntax errors
 def p_error(p):
